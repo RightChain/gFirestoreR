@@ -1,0 +1,23 @@
+Package: gFirestoreR
+Title: Google Cloud Firestore API Wrapper for R
+Version: 0.0.0.9000
+Authors@R:
+  person('Travis', 'Smith', email = 'trvs.smth.11@gmail.com.com', role = c('cre', 'aut'))
+Description: A set of functions that wrap the Google Cloud Firestore REST API detailed at: https://firebase.google.com/docs/firestore/use-rest-api
+URL: http://this
+BugReports: http://that
+License: GPL-3
+Depends: 
+    R (>= 3.6)
+Imports: 
+    httr,
+    jsonlite (>= 1.0),
+    curl (>= 2.7),
+    attempt,
+    purrr,
+    googleAuthR (>= 1.0.0),
+    openssl,
+    utils,
+    yaml,
+    zip (>= 2.0.3),
+    assertthat (>= 0.2.0)
