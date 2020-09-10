@@ -14,7 +14,7 @@ gFire.types <- c('stringValue',
 gFire.encode.basic <- function(a, type) {
   n <- length(a)
   if (n<=0) {
-    return(gFire.encode.null())
+    return(gFire.encode.NULL())
   } else if (n==1) {
     return(setNames(as.list(a), type))
   } else {

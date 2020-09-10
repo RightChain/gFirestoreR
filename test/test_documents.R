@@ -2,7 +2,7 @@ library(gFirestoreR)
 library(googleAuthR)
 
 #Test documents
-data1 <- list('test'=123, 'a'='abc', 'b'=c(0.2,0.3))
+data1 <- list('test'=123, 'a'='abc', 'b'=c(0.2,0.3), 'c'=T)
 data2 <- list('test'=c(1,2,3))
 a <- listDocuments(cG='Directories', partial.path=T)
 b <- getDocument(doc=a[[2]])

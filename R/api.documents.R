@@ -71,12 +71,23 @@ listDocuments <- function(cG, parent=NULL, partial.path=F,
                pageToken = "")
   pars <- rmNullObs(pars)
 
+  parse_f <- function(a) {
+    nextPageToken <- a$nextPageToken
+    if (length(a$documents)==0) {
+      #No more objects
+      return(list())
+    }
+    x <- lapply(seq_len(nrow(a$documents)), function(x) {
+      gFire.decode.doc(a$documents[x,])
+    })
+    attr(x, 'nextPageToken') <- nextPageToken
+    return(x)
+  }
+
   f <- googleAuthR::gar_api_generator(
     paste0(base_url, full_path), "GET",
     pars_args=pars,
-    data_parse_function = function(a){ lapply(seq_len(nrow(a$documents)), function(x) {
-      gFire.decode.doc(a$documents[x,])
-    })}
+    data_parse_function = parse_f
   )
 
   req <- unlist(googleAuthR::gar_api_page(
