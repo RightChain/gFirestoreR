@@ -88,6 +88,35 @@ gFire.encode.gFire.writeObj <- function(a) {
   return(rmNullObs(a))
 }
 
+#' @export
+gFire.encode.gFire.fieldPath <- function(a) {
+  assertthat::assert_that(class(a) == 'gFire.fieldPath')
+  class(a) <- NULL
+  return(rmNullObs(list('fieldPath'=a)))
+}
+
+#' @export
+gFire.encode.gFire.fieldFilter <- function(a) {
+  assertthat::assert_that(class(a) == 'gFire.fieldFilter')
+  a$field <- gFire.encode(a$field)
+  a$op <- a$op
+  a$value <- gFire.encode(a$value)
+  class(a) <- NULL
+  return(rmNullObs(list('fieldFilter'=a)))
+}
+
+#' @export
+gFire.encode.gFire.compositeFilter <- function(a) {
+  assertthat::assert_that(class(a) == 'gFire.compositeFilter')
+  filts <- sapply(a$filters, function(x) {
+    return(list(jsonlite::toJSON(gFire.encode(x), auto_unbox=T, json_verbatim=T)))
+  })
+  a$filters <- paste0('[',paste0(filts, collapse=','),']')
+  class(a$filters) <- 'json'
+  class(a) <- NULL
+  return(rmNullObs(list('compositeFilter'=a)))
+}
+
 
 #####################################################
 #####################################################

@@ -332,3 +332,41 @@ batchWriteDocuments <- function(writes,
 
 
 
+
+
+#' @export
+runQuery <- function(where, from=NULL, allDescendants=F,
+                     db = gFire_get_global_db(),
+                     project = gFire_get_global_project()){
+
+  assertthat::assert_that(is.character(db), is.character(project))
+  root_path <- paste('projects',project,'databases',db,'documents',sep='/')
+
+  from <- sapply(from, function(x) {
+    if (class(x) %in% c('gFire.doc','gFire.cG')) {
+      from_name <- basename(x$name)
+    } else {
+      assertthat::assert_that(is.character(x))
+      from_name <- x
+    }
+    return(jsonlite::toJSON(list(
+      'collectionId'=from_name,
+      'allDescendants'=allDescendants
+    ), auto_unbox=T))
+  })
+
+  body <- list(structuredQuery=list(
+    'from'=paste0('[',from,']',collapse=','),
+    'where'=jsonlite::toJSON(gFire.encode(where), auto_unbox=T, json_verbatim=T)
+  ))
+  class(body$structuredQuery$from) <- 'json'
+
+  f <- googleAuthR::gar_api_generator(
+    paste0(base_url, root_path, ':runQuery'),
+    "POST",
+    data_parse_function = function(a){ lapply(seq_len(nrow(a$document)), function(x) {
+      gFire.decode.doc(a$document[x,])
+    })}
+  )
+  return(f(the_body = jsonlite::toJSON(body, auto_unbox=T, json_verbatim=T)))
+}

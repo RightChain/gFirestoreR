@@ -21,3 +21,10 @@ e <- batchWriteDocuments(writes)
 
 f <- deleteDocument(d)
 
+#Test query
+where <- gFire.fieldFilter('company','Equal','RightChain')
+a <- runQuery(where=where, from='Users')
+
+
+
+
