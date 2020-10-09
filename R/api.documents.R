@@ -22,15 +22,18 @@ getDocument <- function(doc=NULL, document_path=NULL, document_name=NULL, parent
     assertthat::assert_that(is.character(document_name), is.character(parent_path))
     if (partial.path) {
       assertthat::assert_that(is.character(db), is.character(project))
-      full_path <- paste('projects',project,'databases',db,'documents',parent_path,document_path, sep='/')
+      full_path <- paste('projects',project,'databases',db,'documents',parent_path,document_name, sep='/')
     } else {
-      full_path <- paste(parent_path,document_path,sep='/')
+      full_path <- paste(parent_path,document_name,sep='/')
     }
   }
 
   f <- googleAuthR::gar_api_generator(
     paste0(base_url, full_path), "GET",
-    data_parse_function=gFire.decode.doc
+    data_parse_function=function(a) {
+      if (length(a)==0) {return(list())}
+      gFire.decode.doc(a)
+    }
   )
   return(f())
 }
@@ -73,10 +76,7 @@ listDocuments <- function(cG, parent=NULL, partial.path=F,
 
   parse_f <- function(a) {
     nextPageToken <- a$nextPageToken
-    if (length(a$documents)==0) {
-      #No more objects
-      return(list())
-    }
+    if (length(a$documents)==0) {return(list())}
     x <- lapply(seq_len(nrow(a$documents)), function(x) {
       gFire.decode.doc(a$documents[x,])
     })
@@ -108,7 +108,7 @@ listDocuments <- function(cG, parent=NULL, partial.path=F,
 
 
 #' @export
-createDocument <- function(data=list(), cG, parent=NULL, partial.path=F,
+createDocument <- function(data=list(), cG=NULL, parent=NULL, partial.path=F,
                            documentId=NULL,
                            db = gFire_get_global_db(),
                            project = gFire_get_global_project()){
@@ -136,13 +136,16 @@ createDocument <- function(data=list(), cG, parent=NULL, partial.path=F,
   pars <- list(documentId=documentId)
   pars <- rmNullObs(pars)
 
-  body <- jsonlite::toJSON(gFire.encode(gFire.doc(fields=data)), auto_unbox=T, json_verbatim=T)
+  body <- jsonlite::toJSON(gFire.encode(gFire.doc(fields=rmNullObs(data))), auto_unbox=T, json_verbatim=T)
 
   f <- googleAuthR::gar_api_generator(
     paste0(base_url, full_path),
     "POST",
     pars_args=pars,
-    data_parse_function = gFire.decode.doc
+    data_parse_function = function(a) {
+      if (length(a)==0) {return(list())}
+      gFire.decode.doc(a)
+    }
   )
   return(f(the_body = body))
 }
@@ -246,7 +249,10 @@ patchDocument <- function(doc=NULL, newData=NULL, overwrite=F,
     paste0(base_url, full_path),
     "PATCH",
     pars_args=pars,
-    data_parse_function = gFire.decode.doc
+    data_parse_function = function(a) {
+      if (length(a)==0) {return(list())}
+      gFire.decode.doc(a)
+    }
   )
   return(f(the_body = body))
 }
@@ -290,9 +296,12 @@ batchGetDocuments <- function(docs, partial.path=F,
   f <- googleAuthR::gar_api_generator(
     paste0(base_url, root_path, ':batchGet'),
     "POST",
-    data_parse_function = function(a){ lapply(seq_len(nrow(a$documents)), function(x) {
-      gFire.decode.doc(a$documents[x,])
-    })}
+    data_parse_function = function(a){
+      if (length(a$documents)==0) {return(list())}
+      return(lapply(seq_len(nrow(a$documents)), function(x) {
+        gFire.decode.doc(a$documents[x,])
+      }))
+    }
   )
   return(f(the_body = jsonlite::toJSON(body, auto_unbox=T, json_verbatim=T)))
 }
@@ -364,9 +373,12 @@ runQuery <- function(where, from=NULL, allDescendants=F,
   f <- googleAuthR::gar_api_generator(
     paste0(base_url, root_path, ':runQuery'),
     "POST",
-    data_parse_function = function(a){ lapply(seq_len(nrow(a$document)), function(x) {
-      gFire.decode.doc(a$document[x,])
-    })}
+    data_parse_function = function(a) {
+      if (length(a$document)==0) {return(list())}
+      return(lapply(seq_len(nrow(a$document)), function(x) {
+        gFire.decode.doc(a$document[x,])
+      }))
+    }
   )
   return(f(the_body = jsonlite::toJSON(body, auto_unbox=T, json_verbatim=T)))
 }

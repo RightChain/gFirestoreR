@@ -112,7 +112,7 @@ is.gFire.compositeFilter <- function(a) {return(class(a)=='gFire.compositeFilter
 gFire.compositeFilter <- function(filters, op=c('OPERATOR_UNSPECIFIED','AND')) {
   ops <- c('OPERATOR_UNSPECIFIED','AND')
   method=match.arg(op, ops)
-  assertthat::assert_that(method %in% ops, all)
+  assertthat::assert_that(method %in% ops, all(sapply(filters, is.gFire.filter)))
   a <- list(op=method,filters=filters)
   class(a) <- 'gFire.compositeFilter'
   return(a)
