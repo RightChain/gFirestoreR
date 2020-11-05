@@ -154,11 +154,19 @@ gFire.decode.array <- function(a, ignore.na=T) {
     })
 
   } else { #its a list
-    nmes <- names(b)
     if (ignore.na & length(b)==0) {return(NULL)}
-    vals <- lapply(seq_len(length(nmes)), function(x) {
-      gFire.decode.basic(b[x], nmes[x], ignore.na=F)
-    })
+    nmes <- names(b)
+    if (is.null(nmes)) {
+      nmes <- sapply(b, names)
+      vals <- lapply(seq_len(length(nmes)), function(x) {
+        gFire.decode.basic(b[[x]], nmes[x], ignore.na=F)
+      })
+    } else {
+      vals <- lapply(seq_len(length(nmes)), function(x) {
+        gFire.decode.basic(b[x], nmes[x], ignore.na=F)
+      })
+    }
+
   }
 
   z <- vals[[1]]
@@ -204,7 +212,7 @@ gFire.decode.map <- function(a, ignore.na=T, simplify.2.df=T) {
     'fields' == names(a$mapValue), is.list(a$mapValue$fields)
   )
   b <- gFire.decode.fields(a$mapValue$fields, ignore.na, simplify.2.df)
-  class(b) <- 'gFire.map'
+  if (!is.null(b)) {class(b) <- 'gFire.map'}
   return(b)
 }
 
@@ -212,6 +220,7 @@ gFire.decode.doc <- function(a, ignore.na=T, simplify.2.df=T) {
   stopifnot(
     is.list(a), c('name','fields','createTime','updateTime') %in% names(a)
   )
+  # a <- rmNullObs(as.list(a))
   b <- list(
     name=a$name,
     fields=gFire.decode.fields(a$fields, ignore.na, simplify.2.df),

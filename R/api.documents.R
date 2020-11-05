@@ -136,7 +136,11 @@ createDocument <- function(data=list(), cG=NULL, parent=NULL, partial.path=F,
   pars <- list(documentId=documentId)
   pars <- rmNullObs(pars)
 
-  body <- jsonlite::toJSON(gFire.encode(gFire.doc(fields=rmNullObs(data))), auto_unbox=T, json_verbatim=T)
+  doc <- data
+  if (class(doc)!='gFire.doc') {
+    doc <- gFire.doc(fields=rmNullObs(data))
+  }
+  body <- jsonlite::toJSON(gFire.encode(doc), auto_unbox=T, json_verbatim=T)
 
   f <- googleAuthR::gar_api_generator(
     paste0(base_url, full_path),
@@ -297,9 +301,9 @@ batchGetDocuments <- function(docs, partial.path=F,
     paste0(base_url, root_path, ':batchGet'),
     "POST",
     data_parse_function = function(a){
-      if (length(a$documents)==0) {return(list())}
-      return(lapply(seq_len(nrow(a$documents)), function(x) {
-        gFire.decode.doc(a$documents[x,])
+      if (length(a$found)==0) {return(list())}
+      return(lapply(seq_len(nrow(a$found)), function(x) {
+        gFire.decode.doc(a$found[x,])
       }))
     }
   )
@@ -327,7 +331,6 @@ batchWriteDocuments <- function(writes,
   body <- paste0('{writes:[',paste0(sapply(writes, function(x) {
     jsonlite::toJSON(gFire.encode.gFire.writeObj(x), auto_unbox=T, json_verbatim=T)
   }), collapse=','),']}')
-  bOut <<- body
 
   f <- googleAuthR::gar_api_generator(
     paste0(base_url, root_path, ':batchWrite'),
