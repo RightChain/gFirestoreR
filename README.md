@@ -1,0 +1,3 @@
+# gFirestoreR
+googleFirestoreR
+DEPRECATED
